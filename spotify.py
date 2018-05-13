@@ -25,7 +25,14 @@ def get_tracks(db, album_url, sp):
     album = sp.album(album_url)
 
     album_name = album["name"]
-    name = db.child("video_games").child("album_name").set(album_name)
+    alb_name = db.child("video_games").child("album_name").set(album_name)
+    album_artist = album['artists']
+    for artist in album_artist:
+        artist_name = artist['name']
+        art_name = db.child("video_games").child("album_name").child(album_name).child("album_artist").set(artist_name)
+
+
+    #alb_name = db.child("video_games").child("album_name").set(album_name)
 
     album_tracks = album["tracks"]["items"]
 
@@ -34,8 +41,10 @@ def get_tracks(db, album_url, sp):
         track_uri = track["uri"]
         print(track_name)
         print(track_uri)
-    #    get_features(track_uri, sp)
-        get_sections(track_uri, sp)
+        json_segments = get_features(track_uri, sp)
+        art_name = db.child("video_games").child("album_name").child(album_name).child("track_feature").set(json_segments)
+        exit(0)
+    #    get_sections(track_uri, sp)
 
 
 def get_features(track_uri, sp):
@@ -69,9 +78,9 @@ def get_features(track_uri, sp):
     df3.columns = new_header #set the header row as the df header
 
     json_segments = df3.to_json(orient="split")
-#    print(df3)
-    #visualize(df3)
-#    exit(0)
+    print(df3)
+    return(json_segments)
+
 
 def get_sections(track_uri, sp):
         """
@@ -90,7 +99,7 @@ def get_sections(track_uri, sp):
             start = segment["start"]
             loud_time = segment["loudness_max_time"]
             time = start + loud_time
-        #    pitches = segment["pitches"]
+            pitches = segment["pitches"]
             new_segment.append({"time": time, "pitches": pitches})
 
         json1 = json.dumps(new_segment, indent=4)
@@ -108,7 +117,7 @@ def get_sections(track_uri, sp):
         json_segments = df3.to_json(orient="split")
     #    print(df3)
         #visualize(df3)
-    #    exit(0)
+        #exit(0)
 
 def visualize(df):
     """
