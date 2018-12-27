@@ -13,4 +13,11 @@ Different movies and video game genres have different styles of music composed f
 Technologies Used:
 - Spotify API
 - Firebase API
-- Python 3.6, spotipy, pandas, matploblib
+- Python 3.6, spotipy, pandas, matplotlib
+
+
+
+## TODO:
+- refactor spotify.py to a script that gathers data and outputs to a dataframe (spotify_to_df.py)
+- move visualization to separate file
+- look into Flask framework?
