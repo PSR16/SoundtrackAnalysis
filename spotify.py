@@ -43,8 +43,8 @@ def get_tracks(db, album_url, sp):
         print(track_uri)
         json_segments = get_features(track_uri, sp)
         art_name = db.child("video_games").child("album_name").child(album_name).child("track_feature").set(json_segments)
-        exit(0)
-    #    get_sections(track_uri, sp)
+        #exit(0)
+        get_sections(track_uri, sp)
 
 
 def get_features(track_uri, sp):
@@ -78,46 +78,44 @@ def get_features(track_uri, sp):
     df3.columns = new_header #set the header row as the df header
 
     json_segments = df3.to_json(orient="split")
-    print(df3)
+    #print(df3)
     return(json_segments)
 
 
 def get_sections(track_uri, sp):
-        """
-        Get detailed features for each track_uri
+    """
+    Get segments for each track_uri
+    :param track_uri: URI for the track
+    """
 
-        :param track_uri: URI for the track
-        """
+    features = sp.audio_features(track_uri)
+    analysis = sp._get(features[0]['analysis_url'])
+    segments = analysis['segments']
 
-        features = sp.audio_features(track_uri)
+    new_segment = []
+    for segment in segments:
+        start = segment["start"]
+        loud_time = segment["loudness_max_time"]
+        time = start + loud_time
+        pitches = segment["pitches"]
+        new_segment.append({"time": time, "pitches": pitches})
 
-        analysis = sp._get(features[0]['analysis_url'])
-        segments = analysis['segments']
+    json1 = json.dumps(new_segment, indent=4)
 
-        new_segment = []
-        for segment in segments:
-            start = segment["start"]
-            loud_time = segment["loudness_max_time"]
-            time = start + loud_time
-            pitches = segment["pitches"]
-            new_segment.append({"time": time, "pitches": pitches})
+    df = pd.read_json(json1, orient='records')
+    df1 = pd.DataFrame(df['pitches'].values.tolist(), index=df.index)
 
-        json1 = json.dumps(new_segment, indent=4)
+    df2 = pd.concat([df, df1], axis=1)
+    df2.drop(columns=['pitches'],inplace=True)
+    df3 = df2.T
+    new_header = df3.iloc[0] #grab the first row for the header
+    df3 = df3[1:] #take the data less the header row
+    df3.columns = new_header #set the header row as the df header
 
-        df = pd.read_json(json1, orient='records')
-        df1 = pd.DataFrame(df['pitches'].values.tolist(), index=df.index)
-
-        df2 = pd.concat([df, df1], axis=1)
-        df2.drop(columns=['pitches'],inplace=True)
-        df3 = df2.T
-        new_header = df3.iloc[0] #grab the first row for the header
-        df3 = df3[1:] #take the data less the header row
-        df3.columns = new_header #set the header row as the df header
-
-        json_segments = df3.to_json(orient="split")
+    json_segments = df3.to_json(orient="split")
     #    print(df3)
-        #visualize(df3)
-        #exit(0)
+    visualize(df3)
+    exit(0)
 
 def visualize(df):
     """
